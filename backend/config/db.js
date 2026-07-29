@@ -1,28 +1,18 @@
-import mongoose from 'mongoose';
-import { MongoMemoryServer } from 'mongodb-memory-server';
-
-let mongoServer = null;
+import mongoose from "mongoose";
 
 export const connectDB = async () => {
   try {
-    const connUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/satyam_portfolio';
-    
-    // Attempt standard MongoDB connection with a short timeout
-    const options = {
-      serverSelectionTimeoutMS: 2000,
-    };
+    const mongoUri = process.env.MONGODB_URI;
 
-    await mongoose.connect(connUri, options);
-    console.log(`[Database] Connected to MongoDB at: ${mongoose.connection.host}`);
-  } catch (error) {
-    console.warn(`[Database] Standard MongoDB connection failed (${error.message}). Initializing embedded in-memory MongoDB database...`);
-    try {
-      mongoServer = await MongoMemoryServer.create();
-      const mongoUri = mongoServer.getUri();
-      await mongoose.connect(mongoUri);
-      console.log(`[Database] Connected to embedded MongoDB Memory Server at: ${mongoUri}`);
-    } catch (memError) {
-      console.error('[Database] Critical error initializing in-memory MongoDB:', memError.message);
+    if (!mongoUri) {
+      throw new Error("MONGODB_URI is not defined");
     }
+
+    await mongoose.connect(mongoUri);
+
+    console.log(`✅ MongoDB Connected: ${mongoose.connection.host}`);
+  } catch (error) {
+    console.error("❌ MongoDB Connection Error:", error.message);
+    process.exit(1);
   }
 };
